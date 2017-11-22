@@ -1,0 +1,62 @@
+var shared = require('./shared');
+
+module.exports = function command(params) {
+
+    return gladys.deviceType.getInRoom(params.rooms[0])
+    .then((deviceTypes) => {
+        for(var i = 0; i < deviceTypes.length; i++) {
+            if(deviceTypes[i].service === 'kodi') {
+                var id = deviceTypes[i].identifier;
+
+                params.kodi = shared.device[id];
+                switch(params.label) {
+                    case 'play-movie':
+                        return playMovie(params);
+                        break;
+                    case 'play-pause-movie':
+                        return params.kodi.player.playPause();
+                        break;
+                    case 'stop-movie':
+                        return params.kodi.player.stop()
+                        break;
+                    default:
+                        return
+                }
+            }
+        }
+    });
+}
+
+playMovie = function(params) {
+    return listMovies(params.kodi)
+    .then((movies) => {
+        for(var i = 0; i < movies.length; i++) {
+             var file = movies[i].file.split('/'); // We split per /
+             file = file[file.length-1].split('.'); // we get only last element which should be file name (maybe kodi api could provide)
+             file.pop()
+             file = file.join(' '); // we remove extension, such as .avi
+             if(present(params.replacedText, file) || present(params.replacedText, movies[i].label)){
+                   return params.kodi.player.openFile(movies[i].file);
+             }
+        }
+        return Promise.resolve({
+            label: "movie-not-found"
+        });
+   });
+};
+
+listMovies = function(api) {
+    return new Promise(function(resolve, reject) {
+        api.media.movies({
+            properties: ['genre', 'file']
+        });
+
+        api.on('api:movies', function(movies){
+             return resolve(movies);
+        });
+    });
+}
+
+present = function(text, movie){
+    return (text.toLowerCase().indexOf(movie.toLowerCase()) > -1);
+}
