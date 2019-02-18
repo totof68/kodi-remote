@@ -5,7 +5,7 @@
   "keywords": [],
   "dependencies": {
     "bluebird": "^2.10.0",
-    "node-kodi": "^0.0.2"
+    "node-kodi": "^0.0.2-alpha"
   },
   "author": "Jean-PhilippeD",
   "license": "Creative Commons 3.0 France"
